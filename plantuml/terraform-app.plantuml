@@ -1,0 +1,123 @@
+@startuml terraform-app
+
+' Design Configuration
+skinparam monochrome true
+
+database "Database" as database {
+
+    card vm_database <<azurerm_virtual_machine>> [
+        vm-database
+        ---
+    ]
+
+    card ip_database <<azurerm_public_ip>> [
+        static-ip-database
+        ---
+    ]
+
+    card nic_database <<azurerm_network_interface>> [
+        database
+        ---
+    ]
+
+    card ip_config_database <<ip_configuration>> [
+        ---
+    ]
+
+}
+
+package "Wordpress App 1" as wp_1 {
+
+    card vm_app_1 <<azurerm_virtual_machine>> [
+        vm-app-1
+        ---
+    ]
+
+    card ip_app_1 <<azurerm_public_ip>> [
+        static-ip-app-1
+        ---
+    ]
+
+    card nic_app_1 <<azurerm_network_interface>> [
+        app-1
+        ---
+    ]
+
+    card ip_config_app_1 <<ip_configuration>> [
+        ---
+    ]
+
+}
+
+package "Wordpress App 2" as wp_2 {
+
+    card vm_app_2 <<azurerm_virtual_machine>> [
+        vm-app-2
+        ---
+    ]
+
+    card ip_app_2 <<azurerm_public_ip>> [
+        static-ip-app-2
+        ---
+    ]
+
+    card nic_app_2 <<azurerm_network_interface>> [
+        app-2
+        ---
+    ]
+
+    card ip_config_app_2 <<ip_configuration>> [
+        ---
+    ]
+
+}
+
+card subnet <<azure_rm_subnet>> [
+    internal
+    ---
+]
+
+card virtual_network <<azurerm_virtual_network>> [
+    main
+    ---
+]
+
+card resource_group <<azurerm_resource_group>> [
+    main
+    ---
+]
+
+card availability_set <<azurerm_availability_set>> [
+    availability_set
+    ---
+]
+
+vm_database --> availability_set
+vm_app_1 --> availability_set
+vm_app_2 --> availability_set
+
+ip_config_database --> subnet
+ip_config_app_1 --> subnet
+ip_config_app_2 --> subnet
+
+subnet --> virtual_network
+virtual_network --> resource_group
+availability_set --> resource_group
+
+database --> resource_group
+wp_1 --> resource_group
+wp_2 --> resource_group
+
+vm_database --> nic_database
+ip_config_database --> ip_database
+nic_database ..> ip_config_database : <<use>>
+
+vm_app_1 --> nic_app_1
+ip_config_app_1 --> ip_app_1
+nic_app_1 ..> ip_config_app_1 : <<use>>
+
+vm_app_2 --> nic_app_2
+ip_config_app_2 --> ip_app_2
+nic_app_2 ..> ip_config_app_2 : <<use>>
+
+@enduml

@@ -1,0 +1,135 @@
+@startuml cloudify-app
+
+' Design Configuration
+skinparam monochrome true
+
+database "Database" as database {
+
+    card vm_database <<cloudify.azure.nodes.compute.VirtualMachine>> [
+        vm-database
+        ---
+    ]
+
+    card ip_database <<cloudify.azure.nodes.network.PublicIPAddress>> [
+        static-ip-database
+        ---
+    ]
+
+    card nic_database <<cloudify.azure.nodes.network.NetworkInterfaceCard>> [
+        database
+        ---
+    ]
+
+    card ip_config_database <<cloudify.azure.nodes.network.IPConfiguration>> [
+        ip-config-database
+        ---
+    ]
+
+}
+
+package "Wordpress App 1" as wp_1 {
+
+    card vm_app_1 <<cloudify.azure.nodes.compute.VirtualMachine>> [
+        vm-app-1
+        ---
+    ]
+
+    card ip_app_1 <<cloudify.azure.nodes.network.PublicIPAddress>> [
+        static-ip-app-1
+        ---
+    ]
+
+    card nic_app_1 <<cloudify.azure.nodes.network.NetworkInterfaceCard>> [
+        app-1
+        ---
+    ]
+
+    card ip_config_app_1 <<cloudify.azure.nodes.network.IPConfiguration>> [
+        ip-config-app-1
+        ---
+    ]
+
+}
+
+package "Wordpress App 2" as wp_2 {
+
+    card vm_app_2 <<cloudify.azure.nodes.compute.VirtualMachine>> [
+        vm-app-2
+        ---
+    ]
+
+    card ip_app_2 <<cloudify.azure.nodes.network.PublicIPAddress>> [
+        static-ip-app-2
+        ---
+    ]
+
+    card nic_app_2 <<cloudify.azure.nodes.network.NetworkInterfaceCard>> [
+        app-2
+        ---
+    ]
+
+    card ip_config_app_2 <<cloudify.azure.nodes.network.IPConfiguration>> [
+        ip-config-app-2
+        ---
+    ]
+
+}
+
+card subnet <<cloudify.azure.nodes.network.Subnet>> [
+    internal
+    ---
+]
+
+card virtual_network <<cloudify.azure.nodes.network.VirtualNetwork>> [
+    main
+    ---
+]
+
+card resource_group <<cloudify.azure.nodes.ResourceGroup>> [
+    main
+    ---
+]
+
+card availability_set <<cloudify.azure.nodes.compute.AvailabilitySet>> [
+    availability_set
+    ---
+]
+
+card storage_account <<cloudify.azure.nodes.storage.StorageAccount>> [
+    storage_account
+    ---
+]
+
+vm_database --> nic_database
+nic_database --> ip_config_database
+ip_config_database --> ip_database
+
+vm_app_1 --> nic_app_1
+nic_app_1 --> ip_config_app_1
+ip_config_app_1 --> ip_app_1
+
+vm_app_2 --> nic_app_2
+nic_app_2 --> ip_config_app_2
+ip_config_app_2 --> ip_app_2
+
+vm_database --> availability_set
+vm_database --> storage_account
+vm_app_1 --> availability_set
+vm_app_1 --> storage_account
+vm_app_2 --> availability_set
+vm_app_2 --> storage_account
+
+ip_config_database --> subnet
+ip_config_app_1 --> subnet
+ip_config_app_2 --> subnet
+
+subnet --> virtual_network
+virtual_network --> resource_group
+storage_account --> resource_group
+availability_set --> resource_group
+
+database --> resource_group
+wp_1 --> resource_group
+wp_2 --> resource_group
+
+@enduml

@@ -1,0 +1,127 @@
+@startuml terraform
+
+' Design Configuration
+skinparam monochrome true
+
+' Network Layer
+object "name" as network_interface <<azurerm_network_interface>> {
+    name : String
+    location : String
+    resource_group_name : String
+}
+
+object "main" as virtual_network <<azurerm_virtual_network>> {
+    name : String
+    address_space : Array
+    location : String
+    resource_group_name : String
+}
+
+object "internal" as subnet <<azurerm_subnet>> {
+    name : String
+    resource_group_name : String
+    virtual_network_name : String
+    address_prefixes : Array
+}
+
+object "static-name" as static_public_ip <<azurerm_public_ip>> {
+    name : String
+    location : String
+    resource_group_name : String
+    allocation_method : String
+}
+
+object "//ip_configuration//" as ip_configuration {
+    name : String
+    subnet_id : String
+    private_ip_address_allocation : String
+    public_ip_address_id : String
+}
+
+' Virtual Machines
+object "name" as vm <<azurerm_virtual_machine>> {
+    name : String
+    location : String
+    resource_group_name : String
+    network_interface_ids : Array
+    vm_size : String
+    delete_os_disk_on_termination : Boolean
+    delete_data_disks_on_termination : Boolean
+    availability_set_id : String
+}
+
+object "//provisioner//" as provisioner {
+    connection : Object
+    content : String
+    destination : String
+    inline : Array
+}
+
+/'
+object "//os_profile_linux_config//" as os_profile_linux_config {
+    disable_password_authentication :Boolean
+    ssh_keys : Object
+}
+
+object "//storage_os_disk//" as storage_os_disk {
+    name : String
+    caching : String
+    create_option : String
+    managed_disk_type : String
+}
+
+object "//storage_image_reference//" as storage_image_reference {
+    publisher : String
+    offer : String
+    sku : String
+    version : String
+}
+
+object "//os_profile//" as os_profile {
+    computer_name : String
+    admin_username : String
+}
+'/
+
+object "main" as resource_group <<azurerm_resource_group>> {
+    name : String
+    location : String
+}
+
+object "availability_set" as availability_set <<azurerm_availability_set>> {
+    name : String
+    location : String
+    resource_group_name : String
+    managed : Boolean
+}
+
+' Relationships
+network_interface --> resource_group
+virtual_network --> resource_group
+subnet --> resource_group
+vm --> resource_group
+availability_set --> resource_group
+static_public_ip --> resource_group
+ip_configuration --> resource_group
+
+/'
+vm ..> os_profile_linux_config : <<use>>
+vm ..> storage_image_reference : <<use>>
+vm ..> os_profile : <<use>>
+vm ..> storage_os_disk : <<use>>
+'/
+vm ..> provisioner : <<use>>
+
+vm --> availability_set
+vm --> network_interface
+
+provisioner --> static_public_ip
+
+ip_configuration --> subnet
+ip_configuration --> static_public_ip
+
+network_interface ..> ip_configuration : <<use>>
+
+subnet --> virtual_network
+
+@enduml

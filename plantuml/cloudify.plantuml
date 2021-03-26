@@ -1,0 +1,107 @@
+@startuml cloudify
+
+' Design Configuration
+skinparam monochrome true
+
+' Network Layer
+object "nic-name" as network_interface <<cloudify.azure.nodes.network.NetworkInterfaceCard>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+}
+
+object "network" as virtual_network <<cloudify.azure.nodes.network.VirtualNetwork>> {
+    name : String
+    resource_group_name : String
+    azure_config : dict
+    location : String
+}
+
+object "subnet" as subnet <<cloudify.azure.nodes.network.Subnet>> {
+    name : String
+    resource_group_name : String
+    azure_config : dict
+    location : String
+    resource_config : dict
+}
+
+object "ip-name" as static_public_ip <<cloudify.azure.nodes.network.PublicIPAddress>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+    resource_config : dict
+}
+
+object "ip_config-name" as ip_configuration <<cloudify.azure.nodes.network.IPConfiguration>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+    resource_config : dict
+}
+
+object "network_security_group" as network_security_group <<cloudify.azure.nodes.network.NetworkSecurityGroup>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+    resource_config : dict
+}
+
+' Virtual Machines
+object "vm-name" as vm <<cloudify.azure.nodes.compute.VirtualMachine>> {
+    name : String
+    location : String
+    retry_after : Integer
+    os_family : String
+    azure_config : dict
+    resource_config : dict
+    agent_config : dict
+    use_public_ip : Boolean
+}
+
+object "storage_account" as storage_account <<cloudify.azure.nodes.storage.StorageAccount>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+    resource_config : dict
+}
+
+object "resource_group" as resource_group <<cloudify.azure.nodes.ResourceGroup>> {
+    name : String
+    location : String
+    azure_config : dict
+}
+
+object "availability_set" as availability_set <<cloudify.azure.nodes.compute.AvailabilitySet>> {
+    name : String
+    location : String
+    azure_config : dict
+    retry_after : Integer
+}
+
+' Relationships
+virtual_network --> resource_group : <<contained_in_resource_group>>
+network_security_group --> resource_group : <<contained_in_resource_group>>
+network_interface --> resource_group : <<contained_in_resource_group>>
+vm --> resource_group : <<contained_in_resource_group>>
+availability_set --> resource_group : <<contained_in_resource_group>>
+storage_account --> resource_group : <<contained_in_resource_group>>
+static_public_ip --> resource_group : <<contained_in_resource_group>>
+
+subnet --> virtual_network : <<contained_in_virtual_network>>
+
+ip_configuration --> subnet : <<ip_configuration_connected_to_subnet>>
+ip_configuration --> static_public_ip : <<ip_configuration_connected_to_subnet>>
+
+network_interface --> ip_configuration : <<nic_connected_to_ip_configuration>>
+network_interface --> network_security_group : <<nic_connected_to_network_security_group>>
+
+vm --> network_interface : <<connected_to_nic>>
+vm --> storage_account : <<connected_to_storage_account>>
+vm --> availability_set : <<connected_to_availability_set>>
+
+@enduml
