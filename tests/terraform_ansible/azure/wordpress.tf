@@ -56,6 +56,11 @@ variable "public_key" {
   default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0TiCJf98bz/0CDedyGS3Y8wC1Zn2L/xq3WguJL2A+rCl7wWOEDXzyyToHRrbjMARbmPfHxl0+JvmUgJv9H7Yml84bzyPhdXO0AfswcTS1HyVLAD5oH1cs38jUSqOupHnZtvOJ0RoG29SL0KJiDwDhUYSe0xnGNS1EP+oQZJU7X0RGc2c6ZqT70FEzizG9mSAxtw8W0HlrLA+EDEYSjIjEHrMs7G8i/bVJFRbF/jTG1oDzomL535VBzKbQgsgD4No4Mq0fnt5ZxpZF4Q3QYo2U7oO9vfLMTWBpsNAroQggz74/AH3E6qfzMOvawmKhM84astzcbSXFGhGXsKLYbTk1"
 }
 
+variable "private_key_path" {
+  type    = string
+  default = "../keys/wordpress.pem"
+}
+
 ###################
 # Provider
 ###################
@@ -131,7 +136,7 @@ resource "azurerm_virtual_machine" "wordpress-database" {
       host        = "${azurerm_public_ip.static-ip-database.ip_address}"
       type        = "ssh"
       user        = "${var.admin_username}"
-      private_key = file("${path.module}/../keys/wordpress.pem")
+      private_key = file(var.private_key_path)
     }
   }
 
@@ -144,7 +149,7 @@ resource "azurerm_virtual_machine" "wordpress-database" {
         ansible-playbook \
         -u ${var.admin_username} \
         -i '${azurerm_public_ip.static-ip-database.ip_address},' \
-        --private-key '${path.module}/../keys/wordpress.pem' \
+        --private-key '${var.private_key_path}' \
         --extra-vars "{ \
           "database_name": "${var.db_name}", \
           "database_user": "${var.db_user}", \
@@ -204,7 +209,7 @@ resource "azurerm_virtual_machine" "wordpress-app1" {
       host        = "${azurerm_public_ip.static-ip1.ip_address}"
       type        = "ssh"
       user        = "${var.admin_username}"
-      private_key = file("${path.module}/../keys/wordpress.pem")
+      private_key = file(var.private_key_path)
     }
   }
 
@@ -217,7 +222,7 @@ resource "azurerm_virtual_machine" "wordpress-app1" {
         ansible-playbook \
         -u ${var.admin_username} \
         -i '${azurerm_public_ip.static-ip1.ip_address},' \
-        --private-key '${path.module}/../keys/wordpress.pem' \
+        --private-key '${var.private_key_path}' \
         --extra-vars "{ \
           "database_host": "${azurerm_public_ip.static-ip-database.ip_address}", \
           "database_name": "${var.db_name}", \
@@ -273,7 +278,7 @@ resource "azurerm_virtual_machine" "wordpress-app2" {
       host        = "${azurerm_public_ip.static-ip2.ip_address}"
       type        = "ssh"
       user        = "${var.admin_username}"
-      private_key = file("${path.module}/../keys/wordpress.pem")
+      private_key = file(var.private_key_path)
     }
   }
 
@@ -286,7 +291,7 @@ resource "azurerm_virtual_machine" "wordpress-app2" {
         ansible-playbook \
         -u ${var.admin_username} \
         -i '${azurerm_public_ip.static-ip2.ip_address},' \
-        --private-key '${path.module}/../keys/wordpress.pem' \
+        --private-key '${var.private_key_path}' \
         --extra-vars "{ \
           "database_host": "${azurerm_public_ip.static-ip-database.ip_address}", \
           "database_name": "${var.db_name}", \
