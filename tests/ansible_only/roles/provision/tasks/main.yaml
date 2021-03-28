@@ -1,0 +1,172 @@
+- name: Create resource group
+  azure_rm_resourcegroup:
+    name: AnsibleWordpress
+    location: eastus
+
+- name: Create an availability set
+  azure_rm_availabilityset:
+    name: availability_set001
+    location: eastus
+    resource_group: AnsibleWordpress
+
+- name: Create storage account
+  azure_rm_storageaccount:
+    resource_group: AnsibleWordpress
+    name: awaccount001
+    account_type: Standard_LRS
+
+- name: Create virtual network
+  azure_rm_virtualnetwork:
+    resource_group: AnsibleWordpress
+    name: testvn001
+    address_prefixes: "10.10.0.0/16"
+
+- name: Add subnet
+  azure_rm_subnet:
+    resource_group: AnsibleWordpress
+    name: subnet001
+    address_prefix: "10.10.0.0/24"
+    virtual_network: testvn001
+
+# Wordpress
+
+- name: Create security group for Wordpress VMs
+  azure_rm_securitygroup:
+    resource_group: AnsibleWordpress
+    name: wordpressvmsecgroup
+    rules:
+      - name: SSH
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 101
+        direction: Inbound
+      - name: HTTP
+        protocol: Tcp
+        destination_port_range:
+          - 80
+          - 443
+        access: Allow
+        priority: 102
+        direction: Inbound
+
+- name: Create Wordpress VM 1 public IP
+  azure_rm_publicipaddress:
+    resource_group: AnsibleWordpress
+    allocation_method: Static
+    name: wordpressvm1publicip
+
+- name: Create Wordpress NIC 1
+  azure_rm_networkinterface:
+    resource_group: AnsibleWordpress
+    name: wordpressnic1
+    virtual_network: testvn001
+    subnet: subnet001
+    public_ip_name: wordpressvm1publicip
+    security_group: wordpressvmsecgroup
+
+- name: Create Wordpress VM 1
+  azure_rm_virtualmachine:
+    resource_group: AnsibleWordpress
+    name: "{{ wp1_vm_name }}"
+    availability_set: availability_set001
+    vm_size: Standard_B1s
+    storage_account: awaccount001
+    storage_container: "{{ wp1_vm_name }}"
+    storage_blob: "{{ wp1_vm_name }}.vhd"
+    admin_username: vmadmin
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: /home/vmadmin/.ssh/authorized_keys
+        key_data: "{{ ssh_pubkey }}"
+    network_interfaces: wordpressnic1
+    image: &ubuntu_image
+      offer: UbuntuServer
+      publisher: Canonical
+      sku: '14.04.0-LTS'
+      version: latest
+
+- name: Create Wordpress VM 2 public IP
+  azure_rm_publicipaddress:
+    resource_group: AnsibleWordpress
+    allocation_method: Static
+    name: wordpressvm2publicip
+
+- name: Create Wordpress NIC 2
+  azure_rm_networkinterface:
+    resource_group: AnsibleWordpress
+    name: wordpressnic2
+    virtual_network: testvn001
+    subnet: subnet001
+    public_ip_name: wordpressvm2publicip
+    security_group: wordpressvmsecgroup
+
+- name: Create Wordpress VM 2
+  azure_rm_virtualmachine:
+    resource_group: AnsibleWordpress
+    name: "{{ wp2_vm_name }}"
+    availability_set: availability_set001
+    vm_size: Standard_B1s
+    storage_account: awaccount001
+    storage_container: "{{ wp2_vm_name }}"
+    storage_blob: "{{ wp2_vm_name }}.vhd"
+    admin_username: vmadmin
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: /home/vmadmin/.ssh/authorized_keys
+        key_data: "{{ ssh_pubkey }}"
+    network_interfaces: wordpressnic2
+    image: *ubuntu_image
+
+# DB
+
+- name: Create security group for DB VM
+  azure_rm_securitygroup:
+    resource_group: AnsibleWordpress
+    name: dbvmsecgroup
+    rules:
+      - name: SSH
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 101
+        direction: Inbound
+      - name: MySQL
+        protocol: Tcp
+        destination_port_range: 3306
+        source_address_prefix: 10.10.0.0/24
+        access: Allow
+        priority: 102
+        direction: Inbound
+
+- name: Create DB VM public IP
+  azure_rm_publicipaddress:
+    resource_group: AnsibleWordpress
+    allocation_method: Static
+    name: dbvmpublicip
+
+- name: Create DB NIC
+  azure_rm_networkinterface:
+    resource_group: AnsibleWordpress
+    name: dbnic
+    virtual_network: testvn001
+    subnet: subnet001
+    public_ip_name: dbvmpublicip
+    security_group: dbvmsecgroup
+
+- name: Create DB VM
+  azure_rm_virtualmachine:
+    resource_group: AnsibleWordpress
+    name: dbvm
+    availability_set: availability_set001
+    vm_size: Standard_B1s
+    storage_account: awaccount001
+    storage_container: dbvm
+    storage_blob: dbvm.vhd
+    admin_username: vmadmin
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: /home/vmadmin/.ssh/authorized_keys
+        key_data: "{{ ssh_pubkey }}"
+    network_interfaces: dbnic
+    image: *ubuntu_image

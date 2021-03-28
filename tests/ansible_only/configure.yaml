@@ -1,0 +1,28 @@
+---
+- hosts: dbvm
+  remote_user: vmadmin
+  vars_prompt:
+    - name: database_password_prompt
+      prompt: "Database password"
+      unsafe: yes
+  tasks:
+    - set_fact:
+        database_password: "{{ database_password_prompt }}"
+
+- hosts: dbvm
+  remote_user: vmadmin
+  become: yes
+  roles:
+    - config-db
+  
+- hosts:
+    - wordpressvm1
+    - wordpressvm2
+  remote_user: vmadmin
+  become: yes
+  roles:
+    - config-wp
+  vars:
+    database_host: "{{ hostvars[db_vm_name].private_ip }}"
+    database_password: "{{ hostvars[db_vm_name].database_password }}"
+

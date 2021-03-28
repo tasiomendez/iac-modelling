@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Shutdown VMs
+      azure_rm_virtualmachine:
+        resource_group: AnsibleWordpress
+        name: "{{ item }}"
+        started: false
+      with_items:
+        - "{{ wp1_vm_name }}"
+        - "{{ wp2_vm_name }}"
+        - "{{ db_vm_name }}"
