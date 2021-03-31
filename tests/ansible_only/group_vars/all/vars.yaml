@@ -1,0 +1,6 @@
+---
+wp1_vm_name: wordpressvm1
+wp2_vm_name: wordpressvm2
+db_vm_name: dbvm
+database_name: wordpressdb
+database_user: wordpress

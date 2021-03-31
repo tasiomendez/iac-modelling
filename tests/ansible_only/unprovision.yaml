@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Destroy resource group
+      azure_rm_resourcegroup:
+        name: AnsibleWordpress
+        state: absent
