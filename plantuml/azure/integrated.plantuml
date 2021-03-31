@@ -1,0 +1,150 @@
+@startuml integrated
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+' Resource Group
+object "resource_group" as resource_group <<piacere.azure.ResourceGroup>> {
+    name: String
+    location: String
+}
+
+' Compute Instances
+object "virtual_machine" as vm <<piacere.azure.compute.VirtualMachine>> {
+    name: String
+    location: String
+    delete_os_disk_on_termination: Boolean
+    delete_data_disk_on_termination: Boolean
+    hardware_profile:
+        \t  vm_size: String
+    os_family: String
+    os_profile:
+        \t computer_name: String
+        \t admin_username: String
+        \t admin_password: String
+    os_profile_linux_config:
+        \t disable_password_authentication: Boolean
+        \t ssh_keys:
+            \t \t key_data: String
+            \t \t path: String
+    storage_profile:
+        \t publisher: String
+        \t offer: String
+        \t sku: String
+        \t version: String
+    ---
+    resource_group: Reference
+    storage_account: Reference
+    network_interface_ids: Array(References)
+    availability_set: Reference
+}
+
+object "availability_set" as availability_set <<piacere.azure.compute.AvailabilitySet>> {
+    name: String
+    location: String
+    ---
+    resource_group: Reference
+}
+
+' Storage Instances
+object "storage_account" as storage_account <<piacere.azure.storage.StorageAccount>> {
+    name: String
+    caching: String
+    create_option: String
+    managed_disk_type: String
+    ---
+    resource_group: Reference
+}
+
+' Network Instances
+object "virtual_network" as virtual_network <<piacere.azure.network.VirtualNetwork>> {
+    name: String
+    location: String
+    address_space: Array
+    ---
+    resource_group: Reference
+}
+
+object "subnet" as subnet <<piacere.azure.network.Subnet>> {
+    name: String
+    location: String
+    address_prefixes: String
+    ---
+    resource_group: Reference
+    virtual_network: Reference
+}
+
+object "network_interface" as network_interface <<piacere.azure.network.NetworkInterface>> {
+    name: String
+    location: String
+    ---
+    resource_group: Reference
+    ip_configuration: Reference
+    network_security_group: Reference
+}
+
+object "ip_configuration" as ip_configuration <<piacere.azure.network.IPConfiguration>> {
+    name: String
+    location: String
+    private_ip_allocation_method: String
+    ---
+    resource_group: Reference
+    subnet: Reference
+    public_ip: Reference
+}
+
+object "public_ip" as public_ip <<piacere.azure.network.PublicIP>> {
+    name: String
+    location: String
+    public_ip_allocation_method: String
+    ---
+    resource_group: Reference
+}
+
+object "network_security_group" as network_security_group <<piacere.azure.network.NetworkSecurityGroup>> {
+    name: String
+    location: String
+    security_rules: Array
+        \t name: String
+        \t description String
+        \t priority: Integer
+        \t direction: String
+        \t access: String
+        \t protocol: String
+        \t source_port_range: String
+        \t destination_port_range: String
+        \t source_address_prefix: String
+        \t destination_address_prefix: String
+    ---
+    resource_group: Reference
+}
+
+'Relationships
+vm --> resource_group
+vm --> storage_account
+vm --> network_interface
+vm --> availability_set
+
+availability_set --> resource_group
+
+storage_account --> resource_group
+
+virtual_network --> resource_group
+
+subnet --> resource_group
+subnet --> virtual_network
+
+network_interface --> resource_group
+network_interface --> ip_configuration
+network_interface --> network_security_group
+
+ip_configuration --> resource_group
+ip_configuration --> subnet
+ip_configuration --> public_ip
+
+public_ip --> resource_group
+
+network_security_group --> resource_group
+
+@enduml
