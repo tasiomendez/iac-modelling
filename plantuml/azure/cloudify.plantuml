@@ -2,85 +2,113 @@
 
 ' Design Configuration
 skinparam monochrome true
+skinparam tabSize 2
 
 ' Network Layer
 object "nic-name" as network_interface <<cloudify.azure.nodes.network.NetworkInterfaceCard>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
 }
 
 object "network" as virtual_network <<cloudify.azure.nodes.network.VirtualNetwork>> {
-    name : String
-    resource_group_name : String
-    azure_config : dict
-    location : String
+    name: String
+    location: String
+    azure_config: dict
+    resource_group_name: String
 }
 
 object "subnet" as subnet <<cloudify.azure.nodes.network.Subnet>> {
-    name : String
-    resource_group_name : String
-    azure_config : dict
-    location : String
-    resource_config : dict
+    name: String
+    location: String
+    azure_config: dict
+    resource_group_name: String
+    resource_config:
+        \t addressPrefix: String
 }
 
 object "ip-name" as static_public_ip <<cloudify.azure.nodes.network.PublicIPAddress>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
-    resource_config : dict
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
+    resource_config:
+        \t publicIPAllocationMethod: String
 }
 
 object "ip_config-name" as ip_configuration <<cloudify.azure.nodes.network.IPConfiguration>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
-    resource_config : dict
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
+    resource_config:
+        \t privateIPAllocationMethod: String
 }
 
 object "network_security_group" as network_security_group <<cloudify.azure.nodes.network.NetworkSecurityGroup>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
-    resource_config : dict
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
+    resource_config:
+        \t securityRules: Array
+            \t \t name: String
+            \t \t properties:
+                \t \t \t description: String
+                \t \t \t protocol: String
+                \t \t \t sourcePortRange: String
+                \t \t \t destinationPortRange: String
+                \t \t \t sourceAddressPrefix: String
+                \t \t \t destinationAddressPrefix: String
+                \t \t \t priority: Integer
+                \t \t \t access: String
+                \t \t \t direction: String
 }
 
 ' Virtual Machines
 object "vm-name" as vm <<cloudify.azure.nodes.compute.VirtualMachine>> {
-    name : String
-    location : String
-    retry_after : Integer
-    os_family : String
-    azure_config : dict
-    resource_config : dict
-    agent_config : dict
-    use_public_ip : Boolean
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
+    os_family: String
+    resource_config:
+        \t hardwareProfile:
+            \t \t vmSize: String
+        \t storageProfile:
+            \t \t imageReference: dict
+        \t osProfile:
+            \t \t adminUsername: String
+            \t \t adminPassword: String
+            \t \t linuxConfiguration: dict
+    agent_config:
+        \t install_method: String
+        \t key: String
+        \t user: String
+    use_public_ip: Boolean
 }
 
 object "storage_account" as storage_account <<cloudify.azure.nodes.storage.StorageAccount>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
-    resource_config : dict
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
+    resource_config:
+        \t accountType: String
 }
 
 object "resource_group" as resource_group <<cloudify.azure.nodes.ResourceGroup>> {
-    name : String
-    location : String
-    azure_config : dict
+    name: String
+    location: String
+    azure_config: dict
 }
 
 object "availability_set" as availability_set <<cloudify.azure.nodes.compute.AvailabilitySet>> {
-    name : String
-    location : String
-    azure_config : dict
-    retry_after : Integer
+    name: String
+    location: String
+    azure_config: dict
+    retry_after: Integer
 }
 
 ' Relationships

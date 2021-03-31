@@ -2,97 +2,98 @@
 
 ' Design Configuration
 skinparam monochrome true
+skinparam tabSize 2
 
 ' Network Layer
 object "name" as network_interface <<azurerm_network_interface>> {
-    name : String
-    location : String
-    resource_group_name : String
+    name: String
+    location: String
+    resource_group_name: String
 }
 
 object "main" as virtual_network <<azurerm_virtual_network>> {
-    name : String
-    address_space : Array
-    location : String
-    resource_group_name : String
+    name: String
+    address_space: Array
+    location: String
+    resource_group_name: String
 }
 
 object "internal" as subnet <<azurerm_subnet>> {
-    name : String
-    resource_group_name : String
-    virtual_network_name : String
-    address_prefixes : Array
+    name: String
+    resource_group_name: String
+    virtual_network_name: String
+    address_prefixes: Array
 }
 
 object "static-name" as static_public_ip <<azurerm_public_ip>> {
-    name : String
-    location : String
-    resource_group_name : String
-    allocation_method : String
+    name: String
+    location: String
+    resource_group_name: String
+    allocation_method: String
 }
 
 object "//ip_configuration//" as ip_configuration {
-    name : String
-    subnet_id : String
-    private_ip_address_allocation : String
-    public_ip_address_id : String
+    name: String
+    subnet_id: String
+    private_ip_address_allocation: String
+    public_ip_address_id: String
 }
 
 ' Virtual Machines
 object "name" as vm <<azurerm_virtual_machine>> {
-    name : String
-    location : String
-    resource_group_name : String
-    network_interface_ids : Array
-    vm_size : String
-    delete_os_disk_on_termination : Boolean
-    delete_data_disks_on_termination : Boolean
-    availability_set_id : String
+    name: String
+    location: String
+    resource_group_name: String
+    network_interface_ids: Array
+    vm_size: String
+    delete_os_disk_on_termination: Boolean
+    delete_data_disks_on_termination: Boolean
+    availability_set_id: String
 }
 
 object "//provisioner//" as provisioner {
-    connection : Object
-    content : String
-    destination : String
-    inline : Array
+    connection: Object
+    content: String
+    destination: String
+    inline: Array
 }
 
 /'
 object "//os_profile_linux_config//" as os_profile_linux_config {
     disable_password_authentication :Boolean
-    ssh_keys : Object
+    ssh_keys: Object
 }
 
 object "//storage_os_disk//" as storage_os_disk {
-    name : String
-    caching : String
-    create_option : String
-    managed_disk_type : String
+    name: String
+    caching: String
+    create_option: String
+    managed_disk_type: String
 }
 
 object "//storage_image_reference//" as storage_image_reference {
-    publisher : String
-    offer : String
-    sku : String
-    version : String
+    publisher: String
+    offer: String
+    sku: String
+    version: String
 }
 
 object "//os_profile//" as os_profile {
-    computer_name : String
-    admin_username : String
+    computer_name: String
+    admin_username: String
 }
 '/
 
 object "main" as resource_group <<azurerm_resource_group>> {
-    name : String
-    location : String
+    name: String
+    location: String
 }
 
 object "availability_set" as availability_set <<azurerm_availability_set>> {
-    name : String
-    location : String
-    resource_group_name : String
-    managed : Boolean
+    name: String
+    location: String
+    resource_group_name: String
+    managed: Boolean
 }
 
 ' Relationships
