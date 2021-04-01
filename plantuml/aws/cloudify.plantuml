@@ -1,0 +1,122 @@
+@startuml cloudify
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "ami" as ami <<cloudify.nodes.aws.ec2.Image>> {
+    client_config: dict
+    resource_config:
+        \t kwargs:
+            \t \t Filters: Array
+                \t \t \t Name: String
+                \t \t \t Values: Array(String)
+}
+
+object "cloud_init" as cloud_init <<cloudify.nodes.CloudInit.CloudConfig>> {
+    resource_config:
+        \t users: Array
+            \t \t name: String
+            \t \t shell: String
+            \t \t sudo: Array(String)
+            \t \t ssh-authorized-keys: Array(String)
+}
+
+object "security_group_rules" as security_group_rules <<cloudify.nodes.aws.ec2.SecurityGroupRuleIngress>> {
+    client_config: dict
+    resource_config:
+        \t IpPermissions: Array
+            \t \t IpProtocol: String
+            \t \t FromPort: Integer
+            \t \t ToPort: Integer
+            \t \t IpRanges: Array
+                \t \t \t CidrIp: String
+}
+
+object "security_group" as security_group <<cloudify.nodes.aws.ec2.SecurityGroup>> {
+    client_config: dict
+    resource_config:
+        \t GroupName: String
+        \t Description: String
+        \t VpcId: String
+}
+
+object "route" as route <<cloudify.nodes.aws.ec2.Route>> {
+    client_config: dict
+    resource_config:
+        \t kwargs:
+            \t \t DestinationCidrBlock: String
+}
+
+object "route_table" as route_table <<cloudify.nodes.aws.ec2.RouteTable>> {
+    client_config: dict
+}
+
+object "subnet" as subnet <<cloudify.nodes.aws.ec2.Subnet>> {
+    client_config: dict
+    resource_config:
+        \t CidrBlock: String
+        \t AvailabilityZone: String
+}
+
+object "gateway" as gateway <<cloudify.nodes.aws.ec2.InternetGateway>> {
+    client_config: dict
+}
+
+object "vpc" as vpc <<cloudify.nodes.aws.ec2.Vpc>> {
+    client_config: dict
+    resource_config:
+        \t CidrBlock: String
+
+}
+
+object "virtual_machine" as vm <<cloudify.nodes.aws.ec2.Instances>> {
+    client_config: dict
+    agent_config:
+        \t install_method: String
+        \t user: String
+        \t key: String
+    resource_config:
+        \t ImageId: String
+        \t InstanceType: String
+        \t kwargs:
+            \t \t UserData: String
+    use_public_ip: Boolean
+}
+
+object "ip" as ip <<cloudify.nodes.aws.ec2.ElasticIP>> {
+    client_config: dict
+}
+
+object "network_interface" as network_interface <<cloudify.nodes.aws.ec2.Interface>> {
+    client_config: dict
+    resource_config:
+        \t kwargs:
+            \t \t Description: String
+            \t \t SubnetId: String
+            \t \t Groups: Array(String)
+}
+
+security_group_rules --> security_group : <<contained_in>>
+security_group --> vpc : <<depends_on>>
+
+route --> route_table : <<contained_in>>
+route --> gateway : <<connected_to>>
+
+route_table --> vpc : <<contained_in>>
+route_table --> subnet : <<connected_to>>
+
+subnet --> vpc : <<depends_on>>
+
+gateway --> vpc : <<connected_to>>
+
+vm --> ami : <<depends_on>>
+vm --> network_interface : <<depends_on>>
+vm --> cloud_init : <<depends_on>>
+
+ip --> network_interface : <<depends_on>>
+
+network_interface --> security_group : <<depends_on>>
+network_interface --> subnet : <<depends_on>>
+
+@enduml

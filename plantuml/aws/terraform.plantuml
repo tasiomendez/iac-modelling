@@ -1,0 +1,117 @@
+@startuml terraform
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+skinparam object {
+    BackgroundColor<< data.aws_ami >> LightGray
+}
+
+object "ami" as ami <<data.aws_ami>> {
+    most_recent: Boolean
+    filter:
+        \t name: String
+        \t values: Array
+    owners: Array
+}
+
+object "vpc" as vpc <<aws_vpc>> {
+    cidr_block: String
+    tags: dict
+}
+
+object "subnet" as subnet <<aws_subnet>> {
+    vpc_id: String
+    tags: dict
+    cidr_block: String
+    availability_zone: String
+    map_public_ip_on_launch: Boolean
+}
+
+object "gateway" as gateway <<aws_internet_gateway>> {
+    vpc_id: String
+    tags: dict
+}
+
+object "route_table" as route_table <<aws_route_table>> {
+    vpc_id: String
+    tags: dict
+    route:
+        \t cidr_block: String
+        \t gateway_id: String
+}
+
+object "route_table_association" as route_table_association <<aws_main_route_table_association>> {
+    vpc_id: String
+    route_table_id: String
+}
+
+object "network_interface" as network_interface <<aws_network_interface>> {
+    tags: dict
+    subnet_id: String
+    security_groups: Array(String)
+}
+
+object "security_group" as security_group <<aws_security_group>> {
+    vpc_id: String
+    name: String
+    description: String
+    ingress:
+        \t from_port: Integer
+        \t to_port: Integer
+        \t protocol: String
+        \t cidr_blocks: Array(String)
+    egress:
+        \t from_port: Integer
+        \t to_port: Integer
+        \t protocol: String
+        \t cidr_blocks: Array(String)
+}
+
+object "virtual_machine" as vm <<aws_instance>> {
+    ami: String
+    tags: dict
+    instance_type: String
+    key_name: String
+    availability_zone: String
+    network_interface:
+        \t network_interface_id: String
+        \t device_index: Integer
+    credit_specification:
+        \t cpu_credits: String
+}
+
+object "key_pair" as key_pair <<aws_key_pair>> {
+  key_name: String
+  public_key: String
+}
+
+object "//provisioner//" as provisioner {
+    connection: Object
+    content: String
+    destination: String
+    inline: Array
+}
+
+subnet --> vpc
+gateway --> vpc
+
+route_table --> vpc
+route_table --> gateway
+route_table_association --> vpc
+route_table_association --> route_table
+
+network_interface --> subnet
+network_interface --> security_group
+
+security_group --> vpc
+
+vm --> key_pair
+vm --> network_interface
+vm ..> provisioner : <<use>>
+vm --> ami
+
+provisioner --> vm
+
+@enduml
