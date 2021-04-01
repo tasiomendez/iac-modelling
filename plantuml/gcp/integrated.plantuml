@@ -1,0 +1,54 @@
+@startuml integrated
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "network" as network <<piacere.gcp.network.Network>> {
+    name: String
+    auto_subnets: Boolean
+}
+
+object "subnet" as subnet <<piacere.gcp.network.Subnet>> {
+    name: String
+    region: String
+    ip_cidr_range: String
+    ---
+    network: Reference
+}
+
+object "firewall" as firewall <<piacere.gcp.network.Firewall>> {
+    name: String
+    rules: Array
+        \t direction: String
+        \t protocol: String
+        \t ports: Array(Integer)
+        \t source: Array(String)
+        \t target: Array(String)
+    ---
+    network: Reference
+}
+
+object "virtual_machine" as vm <<piacere.gcp.compute.VirtualMachine>> {
+    name: String
+    image_id: String
+    instance_type: String
+    zone: String
+    use_public_ip: Boolean
+    external_ip: Boolean
+    os_configuration:
+        \t username: String
+        \t password: String
+        \t private_key: String
+        \t public_key: String
+    ---
+    network: Reference
+    subnet: Reference
+}
+
+subnet --> network
+firewall --> network
+vm --> network
+vm --> subnet
+
+@enduml
