@@ -1,0 +1,44 @@
+@startuml cloudify
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "firewall" as firewall <<cloudify.gcp.nodes.FirewallRule>> {
+    gcp_config: dict
+    allowed:
+        \t tcp: Array(Integer)
+    sources: Array(String)
+}
+
+object "network" as network <<cloudify.gcp.nodes.Network>> {
+    gcp_config: dict
+    auto_subnets: Boolean
+}
+
+object "subnet" as subnet <<cloudify.gcp.nodes.SubNetwork>> {
+    region: String
+    gcp_config: dict
+    subnet: String
+}
+
+object "virtual_machine" as vm <<cloudify.gcp.nodes.Instance>> {
+    name: String
+    gcp_config: dict
+    agent_config:
+        \t install_method: String
+        \t key: String
+        \t user: String
+    use_public_ip: Boolean
+    image_id: URL
+    instance_type: String
+    zone: String
+    external_ip: Boolean
+}
+
+firewall --> network : <<gcp.contained_in_network>>
+subnet --> network : <<gcp.contained_in_network>>
+vm --> subnet : <<cloudify.depends_on>>
+vm --> vm : <<cloudify.depends_on>>
+
+@enduml

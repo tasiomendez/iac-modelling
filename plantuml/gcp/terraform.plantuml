@@ -1,0 +1,62 @@
+@startuml terraform
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "network" as network <<google_compute_network>> {
+    name: String
+    auto_create_subnetworks: Boolean
+}
+
+object "subnet" as subnet <<google_compute_subnetwork>> {
+    name: String
+    region: String
+    ip_cidr_range: String
+    network: String
+}
+
+object "firewall" as firewall <<google_compute_firewall>> {
+    name: String
+    network: String
+    direction: String
+    allow:
+        \t protocol: String
+        \t ports: Array(Integer)
+    target_tags: Array
+}
+
+object "virtual_machine" as vm <<google_compute_firewall>> {
+    name: String
+    machine_type: String
+    tags: Array(String)
+    boot_disk:
+        \t initialize_params:
+            \t \t image: String
+    allow_stopping_for_update: Boolean
+    network_interface:
+        \t network: String
+        \t subnetwork: String
+        \t access_config: dict
+    metadata:
+        \t sshKeys: String
+}
+
+object "//provisioner//" as provisioner {
+    connection: Object
+    content: String
+    destination: String
+    inline: Array
+}
+
+subnet --> network
+firewall --> network
+
+vm --> network
+vm --> subnet
+
+vm ..> provisioner : <<use>>
+
+provisioner --> vm
+
+@enduml
