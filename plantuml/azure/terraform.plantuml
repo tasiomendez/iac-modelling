@@ -49,6 +49,25 @@ object "name" as vm <<azurerm_virtual_machine>> {
     delete_os_disk_on_termination: Boolean
     delete_data_disks_on_termination: Boolean
     availability_set_id: String
+    oc_profile_linux_config:
+        \t disable_password_authentication :Boolean
+        \t ssh_keys:
+            \t \t key_data: String
+            \t \t path: String
+    storage_os_disk:
+        \t name: String
+        \t caching: String
+        \t create_option: String
+        \t managed_disk_type: String
+    storage_image_reference:
+        \t publisher: String
+        \t offer: String
+        \t sku: String
+        \t version: String
+    os_profile:
+        \t computer_name: String
+        \t admin_username: String
+
 }
 
 object "//provisioner//" as provisioner {
@@ -57,32 +76,6 @@ object "//provisioner//" as provisioner {
     destination: String
     inline: Array
 }
-
-/'
-object "//os_profile_linux_config//" as os_profile_linux_config {
-    disable_password_authentication :Boolean
-    ssh_keys: Object
-}
-
-object "//storage_os_disk//" as storage_os_disk {
-    name: String
-    caching: String
-    create_option: String
-    managed_disk_type: String
-}
-
-object "//storage_image_reference//" as storage_image_reference {
-    publisher: String
-    offer: String
-    sku: String
-    version: String
-}
-
-object "//os_profile//" as os_profile {
-    computer_name: String
-    admin_username: String
-}
-'/
 
 object "main" as resource_group <<azurerm_resource_group>> {
     name: String
@@ -105,12 +98,6 @@ availability_set --> resource_group
 static_public_ip --> resource_group
 ip_configuration --> resource_group
 
-/'
-vm ..> os_profile_linux_config : <<use>>
-vm ..> storage_image_reference : <<use>>
-vm ..> os_profile : <<use>>
-vm ..> storage_os_disk : <<use>>
-'/
 vm ..> provisioner : <<use>>
 
 vm --> availability_set
