@@ -1,0 +1,135 @@
+@startuml integrated
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "virtual_machine" as vm <<piacere.aws.ec2.VirtualMachine>> {
+    tags: dict
+    availability_zone: String
+    credit_specification:
+        \t cpu_credits: String
+    instance_type: String
+    use_public_ip: String
+    key_name: String
+    network_interface:
+        \t network_interface_id: String
+        \t device_index: String
+    ---
+    ami: Reference
+    key_pair: Reference
+    network_interface: Reference
+}
+
+object "key_pair" as key_pair <<piacere.aws.ec2.KeyPair>> {
+    key_name: String
+    public_key: String
+}
+
+object "ami" as ami <<piacere.aws.ec2.Image>> {
+    filters: Array
+        \t name: String
+        \t values: Array(String)
+    owners: Array(String)
+}
+
+object "security_group" as security_group <<piacere.aws.ec2.SecurityGroup>> {
+    name: String
+    description: String
+    ---
+    vpc: Reference
+}
+
+object "security_group_rules" as security_group_rules <<piacere.aws.ec2.SecurityGroupRules>> {
+    ingress: Array
+        \t protocol: String
+        \t from_port: Integer
+        \t to_port: Integer
+        \t cidr_blocks: Array(String)
+    egress: Array
+        \t protocol: String
+        \t from_port: Integer
+        \t to_port: Integer
+        \t cidr_blocks: Array(String)
+    ---
+    security_group: Reference
+}
+
+object "vpc" as vpc <<piacere.aws.ec2.VPC>> {
+    tags: dict
+    cidr_block: String
+}
+
+object "subnet" as subnet <<piacere.aws.ec2.Subnet>> {
+    tags: dict
+    cidr_block: String
+    availability_zone: String
+    map_public_ip_on_launch: Boolean
+    ---
+    vpc: Reference
+}
+
+object "network_interface" as network_interface <<piacere.aws.ec2.Interface>> {
+    tags: dict
+    description: String
+    ---
+    subnet: Reference
+    security_groups: Array(Reference)
+}
+
+object "gateway" as gateway <<piacere.aws.ec2.InternetGateway>> {
+    tags: dict
+    ---
+    vpc: Reference
+}
+
+object "route_table" as route_table <<piacere.aws.ec2.RouteTable>> {
+    tags: dict
+    ---
+    vpc: Reference
+    subnet: Reference
+}
+
+object "route" as route <<piacere.aws.ec2.Route>> {
+    cidr_block: String
+    ---
+    gateway: Reference
+    route_table: Reference
+}
+
+object "route_table_association" as route_table_association <<piacere.aws.ec2.RouteTableAssociation>> {
+    ---
+    vpc: Reference
+    route_table: Reference
+}
+
+object "ip" as ip <<piacere.aws.ec2.ElasticIP>> {
+    ---
+    network_interface: Reference
+}
+
+' Relationships
+vm --> ami
+vm --> key_pair
+vm --> network_interface
+
+security_group --> vpc
+security_group_rules --> security_group
+
+subnet --> vpc
+
+network_interface --> subnet
+network_interface --> security_group
+
+gateway --> vpc
+
+route_table --> vpc
+route_table --> subnet
+route --> gateway
+route --> route_table
+route_table_association --> vpc
+route_table_association --> route_table
+
+ip --> network_interface
+
+@enduml
