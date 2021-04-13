@@ -26,7 +26,7 @@ object "firewall" as firewall <<google_compute_firewall>> {
     target_tags: Array
 }
 
-object "virtual_machine" as vm <<google_compute_firewall>> {
+object "virtual_machine" as vm <<google_compute_instance>> {
     name: String
     machine_type: String
     tags: Array(String)
