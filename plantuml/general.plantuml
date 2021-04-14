@@ -1,0 +1,21 @@
+@startuml general
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+object "network" as network <<piacere.network.Network>>
+
+object "subnet" as subnet <<piacere.network.Subnet>>
+
+object "firewall" as firewall <<piacere.network.Firewall>>
+
+object "vm" as vm <<piacere.compute.VirtualMachine>>
+
+subnet "m" -l-* "1" network : <<contained_in>>
+firewall "1" --* "1" network : <<contained_in>>
+vm "1..m" --o "1..m" network : <<connected_to>>
+vm "1..m" --o "1..m" subnet : <<connected_to>>
+vm "1..m" --o "1" firewall : <<connected_to>>
+
+@enduml

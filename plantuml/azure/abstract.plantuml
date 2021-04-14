@@ -1,0 +1,113 @@
+@startuml abstract
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+' Resource Group
+card resource_group <<piacere.azure.ResourceGroup>> [
+    resource_group
+    ---
+]
+card availability_set <<piacere.azure.compute.AvailabilitySet>> [
+    availability_set
+    ---
+]
+
+' Compute Instances
+card vm <<piacere.compute.VirtualMachine>> {
+
+    card virtual_machine <<piacere.azure.compute.VirtualMachine>> [
+        virtual_machine
+        ---
+    ]
+
+    ' Storage Instances
+    card storage_account <<piacere.azure.storage.StorageAccount>> [
+        storage_account
+        ---
+    ]
+
+
+    card network_interface <<piacere.azure.network.NetworkInterface>> [
+        network_interface
+        ---
+    ]
+
+    card ip_configuration <<piacere.azure.network.IPConfiguration>> [
+        ip_configuration
+        ---
+    ]
+
+    card public_ip <<piacere.azure.network.PublicIP>> [
+        public_ip
+        ---
+    ]
+
+}
+
+card network <<piacere.network.Network>> {
+
+    ' Network Instances
+    card virtual_network <<piacere.azure.network.VirtualNetwork>> [
+        virtual_network
+        ---
+    ]
+
+}
+
+card firewall <<piacere.network.Firewall>> {
+
+    card network_security_group <<piacere.azure.network.NetworkSecurityGroup>> [
+        network_security_group
+        ---
+    ]
+
+}
+
+card subnet <<piacere.network.Subnet>> {
+    card azure_subnet <<piacere.azure.network.Subnet>> [
+        subnet
+        ---
+    ]
+}
+
+'Relationships
+
+' virtual_machine --> storage_account
+' virtual_machine --> network_interface
+' virtual_machine --o availability_set
+
+' ip_configuration --> azure_subnet
+' ip_configuration --> public_ip
+
+' vm --* resource_group
+' subnet --* resource_group
+' network --* resource_group
+' firewall --* resource_group
+
+' vm --o firewall
+' vm --o subnet
+
+' subnet --* firewall
+
+
+virtual_machine --* storage_account
+virtual_machine --* network_interface
+virtual_machine --o availability_set
+
+azure_subnet -l-* virtual_network
+
+network_interface --* ip_configuration
+network_interface --o network_security_group
+
+ip_configuration --o azure_subnet
+ip_configuration -l-o public_ip
+
+vm --* resource_group
+subnet --* resource_group
+network --* resource_group
+firewall --* resource_group
+
+
+@enduml

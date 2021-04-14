@@ -1,0 +1,41 @@
+@startuml abstract
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+
+card network <<piacere.network.Network>> {
+    card gcp_network <<piacere.gcp.network.Network>> [
+        network
+        ---
+    ]
+}
+
+card subnet <<piacere.network.Subnet>> {
+    card gcp_subnet <<piacere.gcp.network.Subnet>> [
+        subnet
+        ---
+    ]
+}
+
+card firewall <<piacere.network.Firewall>> {
+    card gcp_firewall <<piacere.gcp.network.Firewall>> [
+        firewall
+        ---
+    ]
+}
+
+card vm <<piacere.compute.VirtualMachine>> {
+    card gcp_vm <<piacere.gcp.compute.VirtualMachine>> [
+        virtual_machine
+        ---
+    ]
+}
+
+gcp_subnet -l-* gcp_network
+gcp_firewall --* gcp_network
+gcp_vm --o gcp_network
+gcp_vm --o gcp_subnet
+
+@enduml

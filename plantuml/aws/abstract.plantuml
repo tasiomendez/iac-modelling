@@ -1,0 +1,110 @@
+@startuml abstract
+
+' Design Configuration
+skinparam monochrome true
+skinparam tabSize 2
+
+card network <<piacere.network.Network>> {
+
+    card gateway <<piacere.aws.ec2.InternetGateway>> [
+        gateway
+        ---
+    ]
+
+    card vpc <<piacere.aws.ec2.VPC>> [
+        vpc
+        ---
+    ]
+}
+
+card subnet <<piacere.network.Subnet>> {
+
+    card aws_subnet <<piacere.aws.ec2.Subnet>> [
+        subnet
+        ---
+    ]
+
+    card route_table <<piacere.aws.ec2.RouteTable>> [
+        route_table
+        ---
+    ]
+
+    card route <<piacere.aws.ec2.Route>> [
+        route
+        ---
+    ]
+
+    card route_table_association <<piacere.aws.ec2.RouteTableAssociation>> [
+        route_table_association
+        ---
+    ]
+}
+
+card firewall <<piacere.network.Firewall>> {
+
+    card security_group <<piacere.aws.ec2.SecurityGroup>> [
+        security_group
+        ---
+    ]
+
+    card security_group_rules <<piacere.aws.ec2.SecurityGroupRules>> [
+        security_group_rules
+        ---
+    ]
+}
+
+card vm <<piacere.compute.VirtualMachine>> {
+
+    card virtual_machine <<piacere.aws.ec2.VirtualMachine>> [
+        virtual_machine
+        ---
+    ]
+
+    card key_pair <<piacere.aws.ec2.KeyPair>> [
+        key_pair
+        ---
+    ]
+
+    card ami <<piacere.aws.ec2.Image>> [
+        ami
+        ---
+    ]
+
+    card network_interface <<piacere.aws.ec2.Interface>> [
+        network_interface
+        ---
+    ]
+
+    card ip <<piacere.aws.ec2.ElasticIP>> [
+        ip
+        ---
+    ]
+}
+
+' Relationships
+virtual_machine --* ami
+virtual_machine --o key_pair
+virtual_machine --o network_interface
+
+security_group --o vpc
+security_group_rules --o security_group
+
+aws_subnet --* vpc
+
+network_interface --* aws_subnet
+network_interface --o security_group
+
+gateway --* vpc
+
+route_table --* vpc
+' route_table --> aws_subnet
+
+route --* gateway
+route --o route_table
+
+route_table_association --* vpc
+route_table_association --* route_table
+
+ip --* network_interface
+
+@enduml
